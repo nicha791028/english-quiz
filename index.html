@@ -5,29 +5,38 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>🏆 초등 영단어 마스터 150</title>
     <style>
-        body { margin: 0; padding: 0; font-family: sans-serif; background: #1a1a2e; color: white; display: flex; flex-direction: column; align-items: center; height: 100vh; overflow: hidden; }
-        #header { width: 100%; padding: 20px; display: flex; justify-content: space-around; background: rgba(0,0,0,0.3); border-bottom: 2px solid #0f3460; }
-        .info { font-size: 20px; font-weight: bold; }
-        #game-container { flex: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; }
+        body { margin: 0; padding: 0; font-family: 'Malgun Gothic', sans-serif; background: #1a1a2e; color: white; display: flex; flex-direction: column; align-items: center; height: 100vh; overflow: hidden; transition: background 0.1s; }
+        #header { width: 100%; padding: 20px; display: flex; justify-content: space-around; background: rgba(0,0,0,0.4); border-bottom: 2px solid #0f3460; box-sizing: border-box; }
+        .info { font-size: 22px; font-weight: bold; }
+        #game-container { flex: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; width: 100%; }
         #word-display { font-size: 80px; font-weight: 900; margin-bottom: 10px; }
-        #hint-display { font-size: 30px; color: #ff4b2b; height: 40px; margin-bottom: 20px; font-weight: bold; }
-        input { font-size: 30px; padding: 15px; border-radius: 30px; border: none; text-align: center; width: 400px; background: #0f3460; color: white; }
-        .correct { background: #39ff14 !important; }
-        .wrong { background: #ff0000 !important; }
+        #hint-display { font-size: 32px; color: #ff4b2b; height: 45px; margin-bottom: 20px; font-weight: bold; }
+        input { font-size: 32px; padding: 15px 30px; border-radius: 40px; border: 3px solid #0f3460; outline: none; text-align: center; width: 400px; background: #0f3460; color: white; margin-bottom: 20px; }
+        input:focus { border-color: #e94560; }
+        /* 버튼 스타일 강화 */
+        #btn-check { padding: 15px 60px; font-size: 22px; font-weight: bold; background: #e94560; color: white; border: none; border-radius: 12px; cursor: pointer; display: block !important; visibility: visible !important; }
+        #btn-check:hover { background: #ff2e63; }
+        .correct-flash { background: #39ff14 !important; }
+        .wrong-flash { background: #ff0000 !important; }
     </style>
 </head>
 <body>
+
     <div id="header">
         <div class="info" style="color:#00d2ff" id="score">✨ SCORE: 0</div>
         <div class="info" style="color:#ffd700" id="best">🏆 BEST: 0</div>
         <div class="info" style="color:#ff0075" id="combo">🔥 COMBO: 0</div>
     </div>
+
     <div id="game-container">
         <div id="word-display">READY?</div>
         <div id="hint-display"></div>
         <input type="text" id="user-input" placeholder="정답 입력..." autocomplete="off">
+        <button id="btn-check">확인 (ENTER)</button>
     </div>
+
     <script>
+        // 150개 단어 데이터 (내용 동일)
         const quizData = [
             {ko: "도서관", en: "library"}, {ko: "병원", en: "hospital"}, {ko: "공원", en: "park"}, {ko: "우체국", en: "post office"},
             {ko: "은행", en: "bank"}, {ko: "화장실", en: "restroom"}, {ko: "박물관", en: "museum"}, {ko: "서점", en: "bookstore"},
@@ -73,17 +82,27 @@
 
         let score = 0, combo = 0, currentQuiz = {}, isWrong = false;
         let best = localStorage.getItem('quizBest') || 0;
-        document.getElementById('best').innerText = `🏆 BEST: ${best}`;
+        
+        const scoreEl = document.getElementById('score');
+        const bestEl = document.getElementById('best');
+        const comboEl = document.getElementById('combo');
+        const wordEl = document.getElementById('word-display');
+        const hintEl = document.getElementById('hint-display');
+        const inputEl = document.getElementById('user-input');
+        const btnEl = document.getElementById('btn-check');
+
+        bestEl.innerText = `🏆 BEST: ${best}`;
 
         function next() {
             isWrong = false;
-            document.getElementById('hint-display').innerText = "";
-            document.getElementById('user-input').value = "";
-            document.getElementById('user-input').disabled = false;
-            document.getElementById('user-input').focus();
+            hintEl.innerText = "";
+            inputEl.value = "";
+            inputEl.disabled = false;
+            btnEl.innerText = "확인 (ENTER)"; // 버튼 텍스트 복구
+            inputEl.focus();
             currentQuiz = quizData[Math.floor(Math.random() * quizData.length)];
-            document.getElementById('word-display').innerText = currentQuiz.ko;
-            document.getElementById('word-display').style.color = ["#FF0075", "#00D2FF", "#9D00FF", "#39FF14", "#FFFF00"][Math.floor(Math.random()*5)];
+            wordEl.innerText = currentQuiz.ko;
+            wordEl.style.color = ["#FF0075", "#00D2FF", "#9D00FF", "#39FF14", "#FFFF00"][Math.floor(Math.random()*5)];
         }
 
         function flash(c) {
@@ -91,24 +110,37 @@
             setTimeout(() => document.body.classList.remove(c), 150);
         }
 
-        document.getElementById('user-input').addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') {
-                if (isWrong) { next(); return; }
-                const input = document.getElementById('user-input').value.trim().toLowerCase();
-                if (input === currentQuiz.en.toLowerCase()) {
-                    score += 100 + (combo * 20); combo++;
-                    flash('correct');
-                    if (score > best) { best = score; localStorage.setItem('quizBest', best); document.getElementById('best').innerText = `🏆 BEST: ${best}`; }
-                    next();
-                } else {
-                    combo = 0; isWrong = true; flash('wrong');
-                    document.getElementById('hint-display').innerText = `정답: ${currentQuiz.en}`;
-                    document.getElementById('user-input').disabled = true;
-                }
-                document.getElementById('score').innerText = `✨ SCORE: ${score}`;
-                document.getElementById('combo').innerText = `🔥 COMBO: ${combo}`;
+        function handleProcess() {
+            if (isWrong) {
+                next();
+                return;
             }
-        });
+            const input = inputEl.value.trim().toLowerCase();
+            const correct = currentQuiz.en.toLowerCase();
+
+            if (input === correct) {
+                score += 100 + (combo * 20); combo++;
+                flash('correct');
+                if (score > best) { 
+                    best = score; 
+                    localStorage.setItem('quizBest', best); 
+                    bestEl.innerText = `🏆 BEST: ${best}`; 
+                }
+                next();
+            } else {
+                combo = 0; isWrong = true; flash('wrong');
+                hintEl.innerText = `정답: ${currentQuiz.en}`;
+                inputEl.disabled = true;
+                btnEl.innerText = "다음 문제로"; // 버튼 텍스트 변경
+            }
+            scoreEl.innerText = `✨ SCORE: ${score}`;
+            comboEl.innerText = `🔥 COMBO: ${combo}`;
+        }
+
+        // 엔터키와 버튼 클릭 모두 동작하게 설정
+        inputEl.addEventListener('keypress', (e) => { if (e.key === 'Enter') handleProcess(); });
+        btnEl.addEventListener('click', handleProcess);
+
         next();
     </script>
 </body>
