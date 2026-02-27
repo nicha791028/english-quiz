@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🏆 초등 영단어 마스터 150</title>
+    <style>
+        body { margin: 0; padding: 0; font-family: sans-serif; background: #1a1a2e; color: white; display: flex; flex-direction: column; align-items: center; height: 100vh; overflow: hidden; }
+        #header { width: 100%; padding: 20px; display: flex; justify-content: space-around; background: rgba(0,0,0,0.3); border-bottom: 2px solid #0f3460; }
+        .info { font-size: 20px; font-weight: bold; }
+        #game-container { flex: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; }
+        #word-display { font-size: 80px; font-weight: 900; margin-bottom: 10px; }
+        #hint-display { font-size: 30px; color: #ff4b2b; height: 40px; margin-bottom: 20px; font-weight: bold; }
+        input { font-size: 30px; padding: 15px; border-radius: 30px; border: none; text-align: center; width: 400px; background: #0f3460; color: white; }
+        .correct { background: #39ff14 !important; }
+        .wrong { background: #ff0000 !important; }
+    </style>
+</head>
+<body>
+    <div id="header">
+        <div class="info" style="color:#00d2ff" id="score">✨ SCORE: 0</div>
+        <div class="info" style="color:#ffd700" id="best">🏆 BEST: 0</div>
+        <div class="info" style="color:#ff0075" id="combo">🔥 COMBO: 0</div>
+    </div>
+    <div id="game-container">
+        <div id="word-display">READY?</div>
+        <div id="hint-display"></div>
+        <input type="text" id="user-input" placeholder="정답 입력..." autocomplete="off">
+    </div>
+    <script>
+        const quizData = [
+            {ko: "도서관", en: "library"}, {ko: "병원", en: "hospital"}, {ko: "공원", en: "park"}, {ko: "우체국", en: "post office"},
+            {ko: "은행", en: "bank"}, {ko: "화장실", en: "restroom"}, {ko: "박물관", en: "museum"}, {ko: "서점", en: "bookstore"},
+            {ko: "빵집", en: "bakery"}, {ko: "시장", en: "market"}, {ko: "똑바로", en: "straight"}, {ko: "왼쪽으로 도세요", en: "turn left"},
+            {ko: "오른쪽으로 도세요", en: "turn right"}, {ko: "모퉁이", en: "corner"}, {ko: "학교", en: "school"}, {ko: "집", en: "home"},
+            {ko: "식당", en: "restaurant"}, {ko: "동물원", en: "zoo"}, {ko: "수영장", en: "swimming pool"}, {ko: "정거장", en: "station"},
+            {ko: "의사", en: "doctor"}, {ko: "간호사", en: "nurse"}, {ko: "요리사", en: "chef"}, {ko: "경찰관", en: "police officer"},
+            {ko: "소방관", en: "firefighter"}, {ko: "과학자", en: "scientist"}, {ko: "조종사", en: "pilot"}, {ko: "우주비행사", en: "astronaut"},
+            {ko: "농부", en: "farmer"}, {ko: "치과의사", en: "dentist"}, {ko: "선생님", en: "teacher"}, {ko: "학생", en: "student"},
+            {ko: "가수", en: "singer"}, {ko: "엄마", en: "mom"}, {ko: "아빠", en: "dad"}, {ko: "할머니", en: "grandmother"},
+            {ko: "할아버지", en: "grandfather"}, {ko: "친구", en: "friend"}, {ko: "형제", en: "brother"}, {ko: "자매", en: "sister"},
+            {ko: "일어나다", en: "get up"}, {ko: "세수하다", en: "wash"}, {ko: "공부하다", en: "study"}, {ko: "그리다", en: "draw"},
+            {ko: "청소하다", en: "clean"}, {ko: "기다리다", en: "wait"}, {ko: "쇼핑하다", en: "shop"}, {ko: "빌리다", en: "borrow"},
+            {ko: "닦다(양치)", en: "brush"}, {ko: "가르치다", en: "teach"}, {ko: "배우다", en: "learn"}, {ko: "연습하다", en: "practice"},
+            {ko: "먹다", en: "eat"}, {ko: "마시다", en: "drink"}, {ko: "자다", en: "sleep"}, {ko: "가다", en: "go"}, {ko: "오다", en: "come"},
+            {ko: "읽다", en: "read"}, {ko: "쓰다", en: "write"}, {ko: "노래하다", en: "sing"}, {ko: "춤추다", en: "dance"},
+            {ko: "뛰다", en: "run"}, {ko: "수영하다", en: "swim"}, {ko: "돕다", en: "help"}, {ko: "보다", en: "watch"},
+            {ko: "화난", en: "angry"}, {ko: "졸린", en: "sleepy"}, {ko: "목마른", en: "thirsty"}, {ko: "피곤한", en: "tired"},
+            {ko: "지루한", en: "boring"}, {ko: "놀라운", en: "surprising"}, {ko: "친절한", en: "kind"}, {ko: "강한", en: "strong"},
+            {ko: "약한", en: "weak"}, {ko: "조용한", en: "quiet"}, {ko: "행복한", en: "happy"}, {ko: "슬픈", en: "sad"},
+            {ko: "똑똑한", en: "smart"}, {ko: "배고픈", en: "hungry"}, {ko: "바쁜", en: "busy"}, {ko: "예쁜", en: "pretty"},
+            {ko: "큰", en: "big"}, {ko: "작은", en: "small"}, {ko: "빠른", en: "fast"}, {ko: "느린", en: "slow"},
+            {ko: "월요일", en: "monday"}, {ko: "화요일", en: "tuesday"}, {ko: "수요일", en: "wednesday"}, {ko: "목요일", en: "thursday"},
+            {ko: "금요일", en: "friday"}, {ko: "토요일", en: "saturday"}, {ko: "일요일", en: "sunday"}, {ko: "내일", en: "tomorrow"},
+            {ko: "어제", en: "yesterday"}, {ko: "일주일", en: "week"}, {ko: "오늘", en: "today"}, {ko: "아침", en: "morning"},
+            {ko: "오후", en: "afternoon"}, {ko: "저녁", en: "evening"}, {ko: "밤", en: "night"}, {ko: "봄", en: "spring"},
+            {ko: "여름", en: "summer"}, {ko: "가을", en: "fall"}, {ko: "겨울", en: "winter"}, {ko: "지금", en: "now"},
+            {ko: "시간", en: "time"}, {ko: "날씨", en: "weather"}, {ko: "맑은", en: "sunny"}, {ko: "비오는", en: "rainy"}, {ko: "눈오는", en: "snowy"},
+            {ko: "매운", en: "spicy"}, {ko: "달콤한", en: "sweet"}, {ko: "짠", en: "salty"}, {ko: "신", en: "sour"},
+            {ko: "맛있는", en: "delicious"}, {ko: "채소", en: "vegetable"}, {ko: "과일", en: "fruit"}, {ko: "사과", en: "apple"},
+            {ko: "바나나", en: "banana"}, {ko: "포도", en: "grape"}, {ko: "빵", en: "bread"}, {ko: "우유", en: "milk"},
+            {ko: "고기", en: "meat"}, {ko: "물", en: "water"}, {ko: "설탕", en: "sugar"}, {ko: "소금", en: "salt"},
+            {ko: "우산", en: "umbrella"}, {ko: "거울", en: "mirror"}, {ko: "카메라", en: "camera"}, {ko: "장난감", en: "toy"},
+            {ko: "지갑", en: "wallet"}, {ko: "비싼", en: "expensive"}, {ko: "저렴한", en: "cheap"}, {ko: "선물", en: "gift"},
+            {ko: "책", en: "book"}, {ko: "연필", en: "pencil"}, {ko: "공책", en: "notebook"}, {ko: "지우개", en: "eraser"},
+            {ko: "가방", en: "bag"}, {ko: "컴퓨터", en: "computer"}, {ko: "시계", en: "clock"}, {ko: "침대", en: "bed"},
+            {ko: "창문", en: "window"}, {ko: "문", en: "door"}, {ko: "돈", en: "money"}, {ko: "색깔", en: "color"},
+            {ko: "신발", en: "shoes"}, {ko: "옷", en: "clothes"}, {ko: "축구", en: "soccer"}, {ko: "야구", en: "baseball"},
+            {ko: "우주", en: "space"}, {ko: "지구", en: "earth"}, {ko: "바다", en: "ocean"}, {ko: "산", en: "mountain"},
+            {ko: "강", en: "river"}, {ko: "하늘", en: "sky"}, {ko: "별", en: "star"}, {ko: "달", en: "moon"},
+            {ko: "생일", en: "birthday"}, {ko: "시작", en: "start"}
+        ];
+
+        let score = 0, combo = 0, currentQuiz = {}, isWrong = false;
+        let best = localStorage.getItem('quizBest') || 0;
+        document.getElementById('best').innerText = `🏆 BEST: ${best}`;
+
+        function next() {
+            isWrong = false;
+            document.getElementById('hint-display').innerText = "";
+            document.getElementById('user-input').value = "";
+            document.getElementById('user-input').disabled = false;
+            document.getElementById('user-input').focus();
+            currentQuiz = quizData[Math.floor(Math.random() * quizData.length)];
+            document.getElementById('word-display').innerText = currentQuiz.ko;
+            document.getElementById('word-display').style.color = ["#FF0075", "#00D2FF", "#9D00FF", "#39FF14", "#FFFF00"][Math.floor(Math.random()*5)];
+        }
+
+        function flash(c) {
+            document.body.classList.add(c);
+            setTimeout(() => document.body.classList.remove(c), 150);
+        }
+
+        document.getElementById('user-input').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                if (isWrong) { next(); return; }
+                const input = document.getElementById('user-input').value.trim().toLowerCase();
+                if (input === currentQuiz.en.toLowerCase()) {
+                    score += 100 + (combo * 20); combo++;
+                    flash('correct');
+                    if (score > best) { best = score; localStorage.setItem('quizBest', best); document.getElementById('best').innerText = `🏆 BEST: ${best}`; }
+                    next();
+                } else {
+                    combo = 0; isWrong = true; flash('wrong');
+                    document.getElementById('hint-display').innerText = `정답: ${currentQuiz.en}`;
+                    document.getElementById('user-input').disabled = true;
+                }
+                document.getElementById('score').innerText = `✨ SCORE: ${score}`;
+                document.getElementById('combo').innerText = `🔥 COMBO: ${combo}`;
+            }
+        });
+        next();
+    </script>
+</body>
+</html>
